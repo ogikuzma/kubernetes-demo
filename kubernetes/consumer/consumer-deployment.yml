@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: consumer-app
+  template:
+    metadata:
+      labels:
+        app: consumer-app
+    spec:
+      containers:
+      - name: consumer-app
+        image: [URL_TO_YOUR_IMAGE]
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000 
+        env:
+          - name: DB_PRIMARY
+            valueFrom:
+              configMapKeyRef:
+                name: consumer-db-configmap
+                key: db_primary_host
+          - name: DB_REPLICA
+            valueFrom:
+              configMapKeyRef:
+                name: consumer-db-configmap
+                key: db_replica_host
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: consumer-db-secret
+                key: user
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: consumer-db-secret
+                key: superUserPassword
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: consumer-db-configmap
+                key: db_name
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: consumer-db-configmap
+                key: db_port
+          - name: PORT
+            value: "9000"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: consumer-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: consumer-app
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9000

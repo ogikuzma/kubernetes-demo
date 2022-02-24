@@ -1,0 +1,39 @@
+
+create order:
+
+POST
+
+
+localhost:8080/api/order/
+
+{
+    "restaurant_id": "b23cf1a5-a6bf-4243-95f0-37d990f00109",
+    "consumer_id": "c81d156b-3b47-4059-be3c-08346cac8155",
+    "items": [
+        {
+            "item_id": "7051ee87-4007-4db3-bf36-a83633d80968",
+            "item_name": "gulas",
+            "quantity": 1
+        }
+    ]
+}
+
+create consumer: 
+
+	POST
+
+	localhost:8080/api/consumer/
+
+{
+    "name": "Aca",
+    "surname": "Aleksic",
+    "email": "aca.aleksic@example.com",
+    "password": "123"
+}
+
+update order:
+	
+	PUT
+
+	localhost:8080/api/kitchen/update/4dc12cd8-89a9-48a3-818d-27ede6363534/rejected
+

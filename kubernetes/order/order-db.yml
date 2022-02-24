@@ -1,0 +1,26 @@
+apiVersion: kubegres.reactive-tech.io/v1
+kind: Kubegres
+metadata:
+  name: order-db
+  namespace: default
+
+spec:
+
+   replicas: 3
+   image: postgres:latest
+
+   database:
+      size: 100Mi
+
+   env:
+      - name: POSTGRES_PASSWORD
+        valueFrom:
+           secretKeyRef:
+              name: order-db-secret
+              key: superUserPassword
+
+      - name: POSTGRES_REPLICATION_PASSWORD
+        valueFrom:
+           secretKeyRef:
+              name: order-db-secret
+              key: replicationUserPassword

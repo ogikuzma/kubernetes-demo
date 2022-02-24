@@ -1,0 +1,122 @@
+version: "3.8"
+services:
+
+  gateway:
+    image: nginx:1.19.8-alpine
+    ports:
+      - 8080:8080
+    networks:
+      - backend
+    volumes:
+      - ./Gateway/nginx.conf:/etc/nginx/nginx.conf
+      - ./Gateway/api_gateway.conf:/etc/nginx/api_gateway.conf
+
+  # DB
+
+  consumer-database:
+    build: ./database
+    restart: on-failure
+    hostname: postgres
+    container_name: consumer-database
+    ports:
+      - 8090:5432
+    networks:
+      - backend
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1111
+      - POSTGRES_DB=consumer
+
+  order-database:
+    build: ./database
+    restart: on-failure
+    hostname: postgres
+    container_name: order-database
+    ports:
+      - 8091:5432
+    networks:
+      - backend
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1111
+      - POSTGRES_DB=order
+
+  kitchen-database:
+    build: ./database
+    restart: on-failure
+    hostname: postgres
+    container_name: kitchen-database
+    ports:
+      - 8092:5432
+    networks:
+      - backend
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1111
+      - POSTGRES_DB=kitchen
+
+
+  # SERVICES
+      
+  order-service:
+    image: order-service:compose_build
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    environment:
+      CONSUMER_SERVICE_DOMAIN: ${CONSUMER_SERVICE_DOMAIN}
+      CONSUMER_SERVICE_PORT: ${CONSUMER_SERVICE_PORT}
+      KITCHEN_SERVICE_DOMAIN: ${KITCHEN_SERVICE_DOMAIN}
+      KITCHEN_SERVICE_PORT: ${KITCHEN_SERVICE_PORT}
+      PORT: ${ORDER_SERVICE_PORT}
+      DBHOST: postgres
+      USER: postgres
+      PASSWORD: 1111
+      DBNAME: order
+      DBPORT: 5432
+    depends_on:
+      - order-database
+
+  consumer-service:
+    image: consumer-service:compose_build
+    build:
+      context: ./consumer-service
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    environment:
+      PORT: ${CONSUMER_SERVICE_PORT}
+      DBHOST: postgres
+      USER: postgres
+      PASSWORD: 1111
+      DBNAME: consumer
+      DBPORT: 5432
+    depends_on:
+      - consumer-database
+
+  kitchen-service:
+    image: kitchen-service:compose_build
+    build:
+      context: ./kitchen-service
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    environment:
+      ORDER_SERVICE_DOMAIN: ${ORDER_SERVICE_DOMAIN}
+      ORDER_SERVICE_PORT: ${ORDER_SERVICE_PORT}
+      PORT: ${KITCHEN_SERVICE_PORT}
+      DBHOST: postgres
+      USER: postgres
+      PASSWORD: 1111
+      DBNAME: kitchen
+      DBPORT: 5432
+    depends_on:
+      - kitchen-database
+
+
+networks:
+  backend:
+    name: kubernetes
+    driver: bridge

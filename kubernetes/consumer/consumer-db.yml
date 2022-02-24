@@ -1,0 +1,26 @@
+apiVersion: kubegres.reactive-tech.io/v1
+kind: Kubegres
+metadata:
+  name: consumer-db
+  namespace: default
+
+spec:
+
+   replicas: 3
+   image: postgres:latest
+
+   database:
+      size: 100Mi
+
+   env:
+      - name: POSTGRES_PASSWORD
+        valueFrom:
+           secretKeyRef:
+              name: consumer-db-secret
+              key: superUserPassword
+
+      - name: POSTGRES_REPLICATION_PASSWORD
+        valueFrom:
+           secretKeyRef:
+              name: consumer-db-secret
+              key: replicationUserPassword
